@@ -21,4 +21,14 @@
   document.getElementById('modal').addEventListener('click', function(e) {
     if (e.target === this) this.style.display = 'none';
   });
-  
+  document.addEventListener('click', (e) => {
+  if (!nav.contains(e.target)) {
+    navLinks.style.cssText = '';
+    hamburger.setAttribute('aria-expanded', 'false');
+  }
+});
+hamburger.addEventListener('click', () => {
+  const open = navLinks.style.display === 'flex';
+  hamburger.setAttribute('aria-expanded', String(!open));
+  navLinks.style.cssText = open ? '' : '...';
+});
