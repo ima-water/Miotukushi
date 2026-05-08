@@ -41,6 +41,12 @@
       padding: 14px 48px;
       box-shadow: 0 2px 20px rgba(92,61,46,0.07);
     }
+
+    .nav_logo{
+      width: 20px;
+      height: 20px;
+    }
+
     .nav-logo {
       font-family: 'Klee One', cursive;
       font-size: 1.35rem;
