@@ -221,108 +221,108 @@
   <div class="gallery-grid" id="galleryGrid">
     <!-- 動的追加カード（新しい順に先頭へ挿入される） -->
     <div id="dynamicGalleryCards"></div>
-    <!-- 以下は既存カード（新しい順） -->
-    <div class="gallery-card featured reveal">
-      <div class="gallery-thumb" style="background:linear-gradient(135deg,#fde0c0,#f9c08a);">
-        <button class="gallery-delete-btn" onclick="deleteCard(this)" title="削除">✕</button>
-        <div class="gallery-thumb-emoji">🍜</div>
-        <div class="gallery-thumb-date" style="color:#a0583a;">2025.04 APRIL</div>
+  <!--<!-- 以下は既存カード（新しい順） 
+      <div class="gallery-card featured reveal">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#fde0c0,#f9c08a);">
+          <button class="gallery-delete-btn" onclick="deleteCard(this)" title="削除">✕</button>
+          <div class="gallery-thumb-emoji">🍜</div>
+          <div class="gallery-thumb-date" style="color:#a0583a;">2025.04 APRIL</div>
+        </div>
+        <div class="gallery-info">
+          <p class="gallery-dish">本格ラーメン対決🏆</p>
+          <p class="gallery-meta">豚骨・醤油・味噌の3種に挑戦 ／ 参加16名</p>
+        </div>
       </div>
-      <div class="gallery-info">
-        <p class="gallery-dish">本格ラーメン対決🏆</p>
-        <p class="gallery-meta">豚骨・醤油・味噌の3種に挑戦 ／ 参加16名</p>
+      <div class="gallery-card reveal reveal-delay-1">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#d4ecd8,#a8d4b4);">
+          <button class="gallery-delete-btn" onclick="deleteCard(this)" title="削除">✕</button>
+          <div class="gallery-thumb-emoji">🥗</div>
+          <div class="gallery-thumb-date" style="color:#3a7055;">2025.03 MARCH</div>
+        </div>
+        <div class="gallery-info">
+          <p class="gallery-dish">春野菜のビストロサラダ</p>
+          <p class="gallery-meta">旬の野菜フレンチ ／ 参加12名</p>
+        </div>
       </div>
-    </div>
-    <div class="gallery-card reveal reveal-delay-1">
-      <div class="gallery-thumb" style="background:linear-gradient(135deg,#d4ecd8,#a8d4b4);">
-        <button class="gallery-delete-btn" onclick="deleteCard(this)" title="削除">✕</button>
-        <div class="gallery-thumb-emoji">🥗</div>
-        <div class="gallery-thumb-date" style="color:#3a7055;">2025.03 MARCH</div>
+      <div class="gallery-card reveal reveal-delay-2">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#fde8c8,#f8d098);">
+          <button class="gallery-delete-btn" onclick="deleteCard(this)" title="削除">✕</button>
+          <div class="gallery-thumb-emoji">🍰</div>
+          <div class="gallery-thumb-date" style="color:#a07028;">2025.02 FEB</div>
+        </div>
+        <div class="gallery-info">
+          <p class="gallery-dish">バレンタインチョコタルト</p>
+          <p class="gallery-meta">生チョコタルト ／ 参加20名</p>
+        </div>
       </div>
-      <div class="gallery-info">
-        <p class="gallery-dish">春野菜のビストロサラダ</p>
-        <p class="gallery-meta">旬の野菜フレンチ ／ 参加12名</p>
+      <div class="gallery-card reveal reveal-delay-3">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#f0dce8,#e0b8d0);">
+          <button class="gallery-delete-btn" onclick="deleteCard(this)" title="削除">✕</button>
+          <div class="gallery-thumb-emoji">🥘</div>
+          <div class="gallery-thumb-date" style="color:#884868;">2025.01 JAN</div>
+        </div>
+        <div class="gallery-info">
+          <p class="gallery-dish">お正月おせち料理</p>
+          <p class="gallery-meta">伝統和食に挑戦 ／ 参加18名</p>
+        </div>
       </div>
-    </div>
-    <div class="gallery-card reveal reveal-delay-2">
-      <div class="gallery-thumb" style="background:linear-gradient(135deg,#fde8c8,#f8d098);">
-        <button class="gallery-delete-btn" onclick="deleteCard(this)" title="削除">✕</button>
-        <div class="gallery-thumb-emoji">🍰</div>
-        <div class="gallery-thumb-date" style="color:#a07028;">2025.02 FEB</div>
+      <div class="gallery-card reveal reveal-delay-4">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#dce8f8,#b4cef0);">
+          <button class="gallery-delete-btn" onclick="deleteCard(this)" title="削除">✕</button>
+          <div class="gallery-thumb-emoji">🍣</div>
+          <div class="gallery-thumb-date" style="color:#3a5888;">2024.12 DEC</div>
+        </div>
+        <div class="gallery-info">
+          <p class="gallery-dish">手巻き寿司パーティー🎄</p>
+          <p class="gallery-meta">クリスマス特別企画 ／ 参加25名</p>
+        </div>
       </div>
-      <div class="gallery-info">
-        <p class="gallery-dish">バレンタインチョコタルト</p>
-        <p class="gallery-meta">生チョコタルト ／ 参加20名</p>
+      <!-- 追加カード（初期は非表示・新しい順） -
+      <div class="gallery-card gallery-extra hidden reveal">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#e8f0d4,#c8dca0);">
+          <button class="gallery-delete-btn" onclick="deleteCard(this)" title="削除">✕</button>
+          <div class="gallery-thumb-emoji">🍕</div>
+          <div class="gallery-thumb-date" style="color:#5a7030;">2024.11 NOV</div>
+        </div>
+        <div class="gallery-info">
+          <p class="gallery-dish">手作りピザ対決！</p>
+          <p class="gallery-meta">生地から本格派 ／ 参加22名</p>
+        </div>
       </div>
-    </div>
-    <div class="gallery-card reveal reveal-delay-3">
-      <div class="gallery-thumb" style="background:linear-gradient(135deg,#f0dce8,#e0b8d0);">
-        <button class="gallery-delete-btn" onclick="deleteCard(this)" title="削除">✕</button>
-        <div class="gallery-thumb-emoji">🥘</div>
-        <div class="gallery-thumb-date" style="color:#884868;">2025.01 JAN</div>
+      <div class="gallery-card gallery-extra hidden reveal">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#fce8e0,#f8c4b0);">
+          <button class="gallery-delete-btn" onclick="deleteCard(this)" title="削除">✕</button>
+          <div class="gallery-thumb-emoji">🍛</div>
+          <div class="gallery-thumb-date" style="color:#a05030;">2024.10 OCT</div>
+        </div>
+        <div class="gallery-info">
+          <p class="gallery-dish">秋のスパイスカレー</p>
+          <p class="gallery-meta">スパイスから本格カレー ／ 参加19名</p>
+        </div>
       </div>
-      <div class="gallery-info">
-        <p class="gallery-dish">お正月おせち料理</p>
-        <p class="gallery-meta">伝統和食に挑戦 ／ 参加18名</p>
+      <div class="gallery-card gallery-extra hidden reveal">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#e0ecf8,#b8d4f0);">
+          <button class="gallery-delete-btn" onclick="deleteCard(this)" title="削除">✕</button>
+          <div class="gallery-thumb-emoji">🥟</div>
+          <div class="gallery-thumb-date" style="color:#305878;">2024.09 SEP</div>
+        </div>
+        <div class="gallery-info">
+          <p class="gallery-dish">餃子パーティー🥟</p>
+          <p class="gallery-meta">みんなで包んで焼きました ／ 参加30名</p>
+        </div>
       </div>
-    </div>
-    <div class="gallery-card reveal reveal-delay-4">
-      <div class="gallery-thumb" style="background:linear-gradient(135deg,#dce8f8,#b4cef0);">
-        <button class="gallery-delete-btn" onclick="deleteCard(this)" title="削除">✕</button>
-        <div class="gallery-thumb-emoji">🍣</div>
-        <div class="gallery-thumb-date" style="color:#3a5888;">2024.12 DEC</div>
+      <div class="gallery-card gallery-extra hidden reveal">
+        <div class="gallery-thumb" style="background:linear-gradient(135deg,#f8f0d8,#f0d898);">
+          <button class="gallery-delete-btn" onclick="deleteCard(this)" title="削除">✕</button>
+          <div class="gallery-thumb-emoji">🍱</div>
+          <div class="gallery-thumb-date" style="color:#907020;">2024.08 AUG</div>
+        </div>
+        <div class="gallery-info">
+          <p class="gallery-dish">夏の海鮮丼フェス</p>
+          <p class="gallery-meta">豪華海鮮づくし ／ 参加15名</p>
+        </div>
       </div>
-      <div class="gallery-info">
-        <p class="gallery-dish">手巻き寿司パーティー🎄</p>
-        <p class="gallery-meta">クリスマス特別企画 ／ 参加25名</p>
-      </div>
-    </div>
-    <!-- 追加カード（初期は非表示・新しい順） -->
-    <div class="gallery-card gallery-extra hidden reveal">
-      <div class="gallery-thumb" style="background:linear-gradient(135deg,#e8f0d4,#c8dca0);">
-        <button class="gallery-delete-btn" onclick="deleteCard(this)" title="削除">✕</button>
-        <div class="gallery-thumb-emoji">🍕</div>
-        <div class="gallery-thumb-date" style="color:#5a7030;">2024.11 NOV</div>
-      </div>
-      <div class="gallery-info">
-        <p class="gallery-dish">手作りピザ対決！</p>
-        <p class="gallery-meta">生地から本格派 ／ 参加22名</p>
-      </div>
-    </div>
-    <div class="gallery-card gallery-extra hidden reveal">
-      <div class="gallery-thumb" style="background:linear-gradient(135deg,#fce8e0,#f8c4b0);">
-        <button class="gallery-delete-btn" onclick="deleteCard(this)" title="削除">✕</button>
-        <div class="gallery-thumb-emoji">🍛</div>
-        <div class="gallery-thumb-date" style="color:#a05030;">2024.10 OCT</div>
-      </div>
-      <div class="gallery-info">
-        <p class="gallery-dish">秋のスパイスカレー</p>
-        <p class="gallery-meta">スパイスから本格カレー ／ 参加19名</p>
-      </div>
-    </div>
-    <div class="gallery-card gallery-extra hidden reveal">
-      <div class="gallery-thumb" style="background:linear-gradient(135deg,#e0ecf8,#b8d4f0);">
-        <button class="gallery-delete-btn" onclick="deleteCard(this)" title="削除">✕</button>
-        <div class="gallery-thumb-emoji">🥟</div>
-        <div class="gallery-thumb-date" style="color:#305878;">2024.09 SEP</div>
-      </div>
-      <div class="gallery-info">
-        <p class="gallery-dish">餃子パーティー🥟</p>
-        <p class="gallery-meta">みんなで包んで焼きました ／ 参加30名</p>
-      </div>
-    </div>
-    <div class="gallery-card gallery-extra hidden reveal">
-      <div class="gallery-thumb" style="background:linear-gradient(135deg,#f8f0d8,#f0d898);">
-        <button class="gallery-delete-btn" onclick="deleteCard(this)" title="削除">✕</button>
-        <div class="gallery-thumb-emoji">🍱</div>
-        <div class="gallery-thumb-date" style="color:#907020;">2024.08 AUG</div>
-      </div>
-      <div class="gallery-info">
-        <p class="gallery-dish">夏の海鮮丼フェス</p>
-        <p class="gallery-meta">豪華海鮮づくし ／ 参加15名</p>
-      </div>
-    </div>
-  </div>
+    </div> -->
   <div class="gallery-more-wrap">
     <button class="btn-outline" id="galleryMoreBtn" onclick="toggleGalleryMore()">もっと見る ↓</button>
   </div>
