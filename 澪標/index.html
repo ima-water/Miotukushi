@@ -55,6 +55,7 @@
       align-items: center; justify-content: center;
       transition: background 0.2s;
     }
+    
     .gallery-delete-btn:hover { background: rgba(180,40,40,1); }
     body.member-logged-in .gallery-card .gallery-delete-btn { display: flex; }
 </style>
@@ -135,9 +136,13 @@
     <h2 class="section-title">活動スケジュール</h2>
     <p class="section-sub">月に2〜3回、キャンパスの調理室で活動しています。体験参加は随時OK!</p>
   </div>
+  <div class="schedule-mgmt-bar member-only" style="display:none; margin-top:24px;">
+    <button class="btn-outline-sm" onclick="openAddScheduleModal()">＋ 予定を追加する</button>
+  </div>
   <div class="schedule-layout">
     <div class="schedule-list">
       <div class="schedule-card reveal reveal-delay-1">
+        <button class="sched-delete-btn member-only" style="display:none;" onclick="deleteScheduleCard(this)" title="削除">✕</button>
         <div class="sched-month">05<small>MAY</small></div>
         <div>
           <p class="sched-title">🍱 もちもち会！</p>
@@ -146,6 +151,7 @@
         </div>
       </div>
       <div class="schedule-card reveal reveal-delay-2">
+        <button class="sched-delete-btn member-only" style="display:none;" onclick="deleteScheduleCard(this)" title="削除">✕</button>
         <div class="sched-month">05<small>MAY</small></div>
         <div>
           <p class="sched-title">🥢 第4回新歓料理会!!</p>
@@ -154,6 +160,7 @@
         </div>
       </div>
       <div class="schedule-card reveal reveal-delay-3">
+        <button class="sched-delete-btn member-only" style="display:none;" onclick="deleteScheduleCard(this)" title="削除">✕</button>
         <div class="sched-month">06<small>JUN</small></div>
         <div>
           <p class="sched-title">🔥 第5回新歓料理会!!</p>
@@ -162,6 +169,7 @@
         </div>
       </div>
       <div class="schedule-card reveal reveal-delay-4">
+        <button class="sched-delete-btn member-only" style="display:none;" onclick="deleteScheduleCard(this)" title="削除">✕</button>
         <div class="sched-month">06<small>JUN</small></div>
         <div>
           <p class="sched-title">確定新歓</p>
@@ -170,7 +178,8 @@
         </div>
       </div>
       <div class="schedule-card reveal">
-        <div class="sched-month">06<small>JUN</small></div>
+        <button class="sched-delete-btn member-only" style="display:none;" onclick="deleteScheduleCard(this)" title="削除">✕</button>
+        <div class="sched-month">07<small>JUL</small></div>
         <div>
           <p class="sched-title">🍜 第１回料理会</p>
           <p class="sched-detail">6月24日（水）18:00〜22:00 ／ 調理室<br>入サー後初の料理会です！</p>
@@ -387,6 +396,89 @@
     <div style="display:flex;gap:10px;margin-top:8px;">
       <button class="form-submit" style="flex:1;" onclick="doUpload()">追加する 🌿</button>
       <button class="modal-close" style="flex:1;" onclick="closeUploadModal()">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- スケジュール追加モーダル -->
+<div id="addScheduleModal" style="display:none;position:fixed;inset:0;background:rgba(92,61,46,0.45);backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;overflow-y:auto;padding:20px 0;">
+  <div class="modal-box" style="max-width:500px;width:92%;padding:36px 32px;margin:auto;">
+    <span style="font-size:2.5rem;">📅</span>
+    <h3 style="margin:12px 0 6px;">活動予定を追加する</h3>
+    <p style="font-size:0.83rem;color:var(--text-mid);margin-bottom:20px;">新しい活動スケジュールを追加します</p>
+    <div class="form-group" style="text-align:left;margin-bottom:14px;">
+      <label class="form-label">月 <span class="req">*</span></label>
+      <select id="schedMonthInput" class="form-select">
+        <option value="">選択してください</option>
+        <option value="01|JAN">1月</option><option value="02|FEB">2月</option>
+        <option value="03|MAR">3月</option><option value="04|APR">4月</option>
+        <option value="05|MAY">5月</option><option value="06|JUN">6月</option>
+        <option value="07|JUL">7月</option><option value="08|AUG">8月</option>
+        <option value="09|SEP">9月</option><option value="10|OCT">10月</option>
+        <option value="11|NOV">11月</option><option value="12|DEC">12月</option>
+      </select>
+    </div>
+    <div class="form-group" style="text-align:left;margin-bottom:14px;">
+      <label class="form-label">タイトル <span class="req">*</span></label>
+      <input type="text" id="schedTitleInput" class="form-input" placeholder="例：🍕 手作りピザ対決！">
+    </div>
+    <div class="form-group" style="text-align:left;margin-bottom:14px;">
+      <label class="form-label">詳細（日時・場所・内容）<span class="req">*</span></label>
+      <textarea id="schedDetailInput" class="form-textarea" style="min-height:80px;" placeholder="例：7月19日（土）13:00〜16:00 ／ 第1調理室&#10;みんなで生地から本格ピザ作り！"></textarea>
+    </div>
+    <div class="form-group" style="text-align:left;margin-bottom:20px;">
+      <label class="form-label">タグ</label>
+      <select id="schedTagInput" class="form-select">
+        <option value="open">体験参加OK</option>
+        <option value="member">会員限定</option>
+      </select>
+    </div>
+    <p id="addScheduleError" style="color:#c0392b;font-size:0.82rem;margin-bottom:12px;display:none;">月・タイトル・詳細を入力してください</p>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="form-submit" style="flex:1;" onclick="doAddSchedule()">追加する 🌿</button>
+      <button class="modal-close" style="flex:1;" onclick="document.getElementById('addScheduleModal').style.display='none'">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEXT EVENT 編集モーダル -->
+<div id="editNextEventModal" style="display:none;position:fixed;inset:0;background:rgba(92,61,46,0.45);backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;overflow-y:auto;padding:20px 0;">
+  <div class="modal-box" style="max-width:480px;width:92%;padding:36px 32px;margin:auto;">
+    <span style="font-size:2.5rem;">🎯</span>
+    <h3 style="margin:12px 0 6px;">NEXT EVENT を編集する</h3>
+    <p style="font-size:0.83rem;color:var(--text-mid);margin-bottom:20px;">次回イベントの情報を更新します</p>
+    <div class="form-group" style="text-align:left;margin-bottom:14px;">
+      <label class="form-label">イベント名 <span class="req">*</span></label>
+      <input type="text" id="nextTitleInput" class="form-input" placeholder="例：新入生歓迎 お弁当づくり体験会">
+    </div>
+    <div class="form-group" style="text-align:left;margin-bottom:14px;">
+      <label class="form-label">日時 <span class="req">*</span></label>
+      <input type="text" id="nextDateInput" class="form-input" placeholder="例：5月10日（土）13:00〜">
+    </div>
+    <div class="form-group" style="text-align:left;margin-bottom:14px;">
+      <label class="form-label">場所</label>
+      <input type="text" id="nextPlaceInput" class="form-input" placeholder="例：第2調理室（B棟2F）">
+    </div>
+    <div class="form-group" style="text-align:left;margin-bottom:14px;">
+      <label class="form-label">定員</label>
+      <input type="text" id="nextCapInput" class="form-input" placeholder="例：20名（先着順）">
+    </div>
+    <div class="form-group" style="text-align:left;margin-bottom:14px;">
+      <label class="form-label">参加費</label>
+      <input type="text" id="nextFeeInput" class="form-input" placeholder="例：材料費300円のみ">
+    </div>
+    <div class="form-group" style="text-align:left;margin-bottom:14px;">
+      <label class="form-label">持ち物</label>
+      <input type="text" id="nextItemsInput" class="form-input" placeholder="例：エプロン・タオル">
+    </div>
+    <div class="form-group" style="text-align:left;margin-bottom:20px;">
+      <label class="form-label">補足メモ</label>
+      <textarea id="nextNoteInput" class="form-textarea" style="min-height:70px;" placeholder="例：はじめての方も大歓迎！先輩がやさしくサポートします🍱"></textarea>
+    </div>
+    <p id="editNextEventError" style="color:#c0392b;font-size:0.82rem;margin-bottom:12px;display:none;">イベント名と日時は必須です</p>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="form-submit" style="flex:1;" onclick="doEditNextEvent()">更新する 🌿</button>
+      <button class="modal-close" style="flex:1;" onclick="document.getElementById('editNextEventModal').style.display='none'">キャンセル</button>
     </div>
   </div>
 </div>

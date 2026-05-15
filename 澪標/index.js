@@ -77,6 +77,10 @@ function doAdminLogin() {
   if (ok) {
     isLoggedIn = true;
     document.body.classList.add('member-logged-in');
+    // .member-only を一括表示
+    document.querySelectorAll('.member-only').forEach(el => {
+      el.style.display = el.tagName === 'BUTTON' ? 'inline-flex' : 'flex';
+    });
     document.getElementById('adminLoginModal').style.display = 'none';
     document.getElementById('adminBtn').textContent = '📸 料理を追加する';
     document.getElementById('adminBtn').classList.add('logged-in');
@@ -90,7 +94,7 @@ document.getElementById('adminPassInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') doAdminLogin();
 });
 
-['adminLoginModal','uploadModal'].forEach(id => {
+['adminLoginModal','uploadModal','addScheduleModal','editNextEventModal'].forEach(id => {
   document.getElementById(id).addEventListener('click', function(e) {
     if (e.target === this) this.style.display = 'none';
   });
@@ -270,3 +274,126 @@ function doUpload() {
     card.style.transform = 'scale(0.95)';
     setTimeout(() => card.remove(), 300);
   }
+
+// ========== スケジュール管理 ==========
+
+// --- 追加モーダルを開く ---
+function openAddScheduleModal() {
+  if (!isLoggedIn) return;
+  document.getElementById('schedMonthInput').value = '';
+  document.getElementById('schedTitleInput').value = '';
+  document.getElementById('schedDetailInput').value = '';
+  document.getElementById('schedTagInput').value = 'open';
+  document.getElementById('addScheduleError').style.display = 'none';
+  document.getElementById('addScheduleModal').style.display = 'flex';
+}
+
+// --- スケジュールカードを追加する ---
+function doAddSchedule() {
+  const monthVal  = document.getElementById('schedMonthInput').value;
+  const title     = document.getElementById('schedTitleInput').value.trim();
+  const detail    = document.getElementById('schedDetailInput').value.trim();
+  const tagType   = document.getElementById('schedTagInput').value;
+  const err       = document.getElementById('addScheduleError');
+
+  if (!monthVal || !title || !detail) {
+    err.style.display = 'block';
+    return;
+  }
+  err.style.display = 'none';
+
+  const [monthNum, monthEn] = monthVal.split('|');
+  const tagClass  = tagType === 'open' ? 'sched-tag open-tag' : 'sched-tag';
+  const tagLabel  = tagType === 'open' ? '体験参加OK' : '会員限定';
+
+  const card = document.createElement('div');
+  card.className = 'schedule-card sched-dynamic-card';
+  card.style.position = 'relative';
+  card.innerHTML = `
+    <button class="sched-delete-btn" onclick="deleteScheduleCard(this)" title="削除" style="display:flex;">✕</button>
+    <div class="sched-month">${monthNum}<small>${monthEn}</small></div>
+    <div>
+      <p class="sched-title">${title}</p>
+      <p class="sched-detail">${detail.replace(/\n/g, '<br>')}</p>
+      <span class="${tagClass}">${tagLabel}</span>
+    </div>`;
+
+  // リストの先頭に追加
+  const list = document.querySelector('.schedule-list');
+  list.insertBefore(card, list.firstChild);
+
+  // reveal アニメーションを適用
+  setTimeout(() => observer.observe(card), 10);
+
+  document.getElementById('addScheduleModal').style.display = 'none';
+}
+
+// --- スケジュールカードを削除する ---
+function deleteScheduleCard(btn) {
+  if (!isLoggedIn) return;
+  const card = btn.closest('.schedule-card');
+  card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+  card.style.opacity = '0';
+  card.style.transform = 'scale(0.97)';
+  setTimeout(() => card.remove(), 300);
+}
+
+// ========== NEXT EVENT 編集 ==========
+
+// --- 編集モーダルを開く（現在の値を読み込む） ---
+function openEditNextEventModal() {
+  if (!isLoggedIn) return;
+
+  // 現在の表示値を読み取ってフォームに反映
+  const details = document.querySelectorAll('.next-detail');
+  // details[0]=日時, [1]=場所, [2]=定員, [3]=参加費, [4]=持物
+  const getValue = (el) => el ? el.textContent.replace(/^.+?\s/, '').trim() : '';
+
+  document.getElementById('nextTitleInput').value =
+    document.querySelector('.next-title') ? document.querySelector('.next-title').innerHTML.replace(/<br>/g, '\n').trim() : '';
+  document.getElementById('nextDateInput').value  = getValue(details[0]);
+  document.getElementById('nextPlaceInput').value = getValue(details[1]);
+  document.getElementById('nextCapInput').value   = getValue(details[2]);
+  document.getElementById('nextFeeInput').value   = getValue(details[3]);
+  document.getElementById('nextItemsInput').value = getValue(details[4]);
+  document.getElementById('nextNoteInput').value  =
+    document.querySelector('.next-note') ? document.querySelector('.next-note').innerText.trim() : '';
+
+  document.getElementById('editNextEventError').style.display = 'none';
+  document.getElementById('editNextEventModal').style.display = 'flex';
+}
+
+// --- NEXT EVENT を更新する ---
+function doEditNextEvent() {
+  const title  = document.getElementById('nextTitleInput').value.trim();
+  const date   = document.getElementById('nextDateInput').value.trim();
+  const place  = document.getElementById('nextPlaceInput').value.trim();
+  const cap    = document.getElementById('nextCapInput').value.trim();
+  const fee    = document.getElementById('nextFeeInput').value.trim();
+  const items  = document.getElementById('nextItemsInput').value.trim();
+  const note   = document.getElementById('nextNoteInput').value.trim();
+  const err    = document.getElementById('editNextEventError');
+
+  if (!title || !date) { err.style.display = 'block'; return; }
+  err.style.display = 'none';
+
+  // タイトルを更新（改行を<br>に変換）
+  document.querySelector('.next-title').innerHTML = title.replace(/\n/g, '<br>');
+
+  // 各詳細行を更新
+  const details = document.querySelectorAll('.next-detail');
+  const setDetail = (el, label, val) => {
+    if (el) el.innerHTML = `<strong>${label}</strong>${val || '—'}`;
+  };
+  setDetail(details[0], '日時', date);
+  setDetail(details[1], '場所', place);
+  setDetail(details[2], '定員', cap);
+  setDetail(details[3], '参加費', fee);
+  setDetail(details[4], '持物', items);
+
+  // 補足メモを更新
+  const noteEl = document.querySelector('.next-note');
+  if (noteEl) noteEl.innerHTML = note.replace(/\n/g, '<br>');
+
+  document.getElementById('editNextEventModal').style.display = 'none';
+}
