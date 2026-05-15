@@ -404,6 +404,55 @@ body.member-logged-in .member-only      { display: flex !important; }
   padding: 5px 14px;
 }
 
+
+  .gallery-extra { transition: opacity 0.4s ease, transform 0.4s ease; }
+  .gallery-extra.hidden { display: none; }
+  .gallery-extra.showing { display: block; animation: fadeSlideUp 0.5s ease forwards; }
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .gallery-more-wrap { text-align: center; margin-top: 32px; }
+  #galleryMoreBtn { transition: all 0.2s ease; }
+  .btn-outline-sm {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 20px;
+    border: 1.5px solid var(--primary, #c86b3a);
+    color: var(--primary, #c86b3a); background: transparent;
+    font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    transition: all 0.2s ease; white-space: nowrap;
+    font-family: inherit;
+  }
+  .btn-outline-sm:hover { background: var(--primary, #c86b3a); color: #fff; }
+  .btn-outline-sm.logged-in { border-color: #3a8a5a; color: #3a8a5a; }
+  .btn-outline-sm.logged-in:hover { background: #3a8a5a; color: #fff; }
+  .gallery-dynamic-card { animation: fadeSlideUp 0.5s ease forwards; }
+    #dynamicGalleryCards { display: contents; }
+    #photoDropArea:hover { border-color: var(--primary, #c86b3a); background: #fff8f2; }
+    .gallery-thumb {
+      position: relative; overflow: hidden;
+      height: 180px; background: #f5ede4;
+    }
+    .gallery-thumb-photo {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      position: absolute; inset: 0;
+    }
+    /* 削除ボタン */
+    .gallery-delete-btn {
+      display: none;
+      position: absolute; top: 8px; right: 8px;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(180,40,40,0.85); color: #fff;
+      border: none; font-size: 0.85rem; line-height: 1;
+      cursor: pointer; z-index: 10;
+      align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    
+    .gallery-delete-btn:hover { background: rgba(180,40,40,1); }
+    body.member-logged-in .gallery-card .gallery-delete-btn { display: flex; }
+
     
     /*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
