@@ -1,52 +1,36 @@
 async function testConnection() {
-
-  const { data, error } = await supabase
+  // 🔴 supabaseClient に変更
+  const { data, error } = await supabaseClient
     .from('gallery')
     .select('*');
 
   console.log('data:', data);
   console.log('error:', error);
-
 }
 
 testConnection();
 
 async function loadGallery() {
-
-  const { data, error } = await supabase
+  // 🔴 supabaseClient に変更
+  const { data, error } = await supabaseClient
     .from('gallery')
     .select('*')
     .order('created_at', { ascending: false });
-
-  console.log(data);
-
-}
-
-async function loadGallery() {
-  // 1. Supabaseからデータを取得
-  const { data, error } = await supabase
-    .from('gallery')
-    .select('*')
-    .order('created_at', { ascending: false }); // 新しい順に並べる
 
   if (error) {
     console.error('データ取得エラー:', error);
     return;
   }
 
-  // 2. 表示先のエリア（HTMLのid）を取得
   const container = document.getElementById('dynamicGalleryCards');
   if (!container) return;
 
-  // 3. 一旦中身を空にする
   container.innerHTML = '';
 
-  // 4. 取得したデータの分だけカードを作成して追加
   data.forEach(item => {
     const card = document.createElement('div');
     card.className = 'gallery-card gallery-dynamic-card';
     
-    // ここでデータベースの「カラム名」を使って表示を作る
     card.innerHTML = `
       <div class="gallery-thumb" style="background:#f5ede4;">
         <button class="gallery-delete-btn" onclick="deleteCard('${item.id}', this)" title="削除">✕</button>
@@ -64,5 +48,37 @@ async function loadGallery() {
   });
 }
 
-// ページを読み込んだら実行するようにする
 document.addEventListener('DOMContentLoaded', loadGallery);
+
+// カードを削除する関数
+async function deleteCard(id, btn) {
+  // ログインチェック（現状のindex.jsの変数を参照）
+  if (!isLoggedIn) {
+    alert("ログインが必要です");
+    return;
+  }
+
+  if (!confirm("本当にこの投稿を削除しますか？")) return;
+
+  // 1. Supabaseから削除を実行
+  const { error } = await supabaseClient
+    .from('gallery')
+    .delete()
+    .eq('id', id); // 覚えたての「id」を使ってピンポイントで消す！
+
+  if (error) {
+    console.error('削除エラー:', error);
+    alert('削除に失敗しました');
+    return;
+  }
+
+  // 2. DB削除に成功したら、画面上のカードを消すアニメーション
+  const card = btn.closest('.gallery-card');
+  card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+  card.style.opacity = '0';
+  card.style.transform = 'scale(0.95)';
+  
+  setTimeout(() => {
+    card.remove();
+  }, 300);
+}

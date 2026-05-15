@@ -50,12 +50,13 @@ function toggleGalleryMore() {
   });
   btn.textContent = galleryExpanded ? '閉じる ↑' : 'もっと見る ↓';
 }
-
+/*
 // ========== メンバーログイン ==========
 const MEMBERS = [
   { id: 'soedaisaku', pass: 'miotsukushi2023' },
   { id: 'nakanomana',    pass: 'miotsukushi2023' },
 ];
+*/
 
 let isLoggedIn = false;
 
@@ -70,24 +71,36 @@ function openAdminLogin() {
   document.getElementById('adminLoginModal').style.display = 'flex';
 }
 
-function doAdminLogin() {
-  const id = document.getElementById('adminIdInput').value.trim();
-  const pass = document.getElementById('adminPassInput').value.trim();
-  const ok = MEMBERS.some(m => m.id === id && m.pass === pass);
-  if (ok) {
-    isLoggedIn = true;
-    document.body.classList.add('member-logged-in');
-    // .member-only を一括表示
-    document.querySelectorAll('.member-only').forEach(el => {
-      el.style.display = el.tagName === 'BUTTON' ? 'inline-flex' : 'flex';
-    });
-    document.getElementById('adminLoginModal').style.display = 'none';
-    document.getElementById('adminBtn').textContent = '📸 料理を追加する';
-    document.getElementById('adminBtn').classList.add('logged-in');
-    document.getElementById('uploadModal').style.display = 'flex';
-  } else {
-    document.getElementById('loginError').style.display = 'block';
+// 新しいログイン関数（Supabase認証版）
+async function doAdminLogin() {
+  const email = document.getElementById('adminIdInput').value.trim(); // ID入力欄をメールアドレスとして使う
+  const pass  = document.getElementById('adminPassInput').value.trim();
+  const err   = document.getElementById('loginError');
+
+  // Supabaseに「この人あってる？」と聞きに行く
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email: email,
+    password: pass,
+  });
+
+  if (error) {
+    console.error('ログイン失敗:', error.message);
+    err.style.display = 'block';
+    err.textContent = "メールアドレスまたはパスワードが違います";
+    return;
   }
+
+  // ログイン成功時の処理
+  console.log('ログイン成功:', data.user);
+  err.style.display = 'none';
+  
+  // ログイン状態を反映させる
+  isLoggedIn = true; 
+  document.body.classList.add('member-logged-in'); // メンバー専用UIを表示
+  
+  // モーダルを閉じて投稿画面へ
+  document.getElementById('adminLoginModal').style.display = 'none';
+  document.getElementById('uploadModal').style.display = 'flex';
 }
 
 document.getElementById('adminPassInput').addEventListener('keydown', e => {
@@ -202,7 +215,7 @@ function getCroppedDataUrl() {
   const viewport = document.getElementById('cropViewport');
   const scaleRatio = OUTPUT_W / viewport.clientWidth;
 
-  const out = document.data.forEach(item => {})('canvas');
+  const out = document.createElement('canvas');
   out.width = OUTPUT_W;
   out.height = OUTPUT_H;
   const ctx = out.getContext('2d');
@@ -232,7 +245,7 @@ function closeUploadModal() {
   document.getElementById('uploadError').style.display = 'none';
 }
 
-function doUpload() {
+async function doUpload() {
   const dish = document.getElementById('uploadDish').value.trim();
   const meta = document.getElementById('uploadMeta').value.trim();
   const err  = document.getElementById('uploadError');
@@ -240,32 +253,67 @@ function doUpload() {
   if (!dish || !cropImage) { err.style.display = 'block'; return; }
   err.style.display = 'none';
 
-  const croppedUrl = getCroppedDataUrl();
-  const now = new Date();
-  const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-  const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')} ${months[now.getMonth()]}`;
+  try {
+    // 1. トリミングした画像を「データ」として取得
+    const canvas = document.createElement('canvas'); // さっき直したところ！
+    const OUTPUT_W = 600, OUTPUT_H = 450;
+    canvas.width = OUTPUT_W; canvas.height = OUTPUT_H;
+    const ctx = canvas.getContext('2d');
+    
+    // トリミング計算
+    const viewport = document.getElementById('cropViewport');
+    const scaleRatio = OUTPUT_W / viewport.clientWidth;
+    const imgW = cropImage.naturalWidth;
+    const imgH = cropImage.naturalHeight;
+    const baseScale = Math.max(viewport.clientWidth / imgW, viewport.clientHeight / imgH);
+    const scale = baseScale * (cropScale / 100);
+    const drawW = imgW * scale * scaleRatio;
+    const drawH = imgH * scale * scaleRatio;
+    const x = (OUTPUT_W - drawW) / 2 + cropOffsetX * scaleRatio;
+    const y = (OUTPUT_H - drawH) / 2 + cropOffsetY * scaleRatio;
+    ctx.drawImage(cropImage, x, y, drawW, drawH);
 
-  const card = document.data.forEach(item => {})('div');
-  card.className = 'gallery-card gallery-dynamic-card';
-  card.innerHTML = `
-    <div class="gallery-thumb" style="background:#f5ede4;">
-      <button class="gallery-delete-btn" onclick="deleteCard(this)" title="削除">✕</button>
-      <img class="gallery-thumb-photo" src="${croppedUrl}" alt="${dish}" style="object-fit:cover;">
-      <div class="gallery-thumb-date" style="color:#fff;position:absolute;bottom:8px;right:10px;text-shadow:0 1px 4px rgba(0,0,0,0.5);z-index:1;">${dateStr}</div>
-    </div>
-    <div class="gallery-info">
-      <p class="gallery-dish">${dish}</p>
-      <p class="gallery-meta">${meta || 'メンバー投稿'}</p>
-    </div>`;
+    // 2. キャンバスからBlob（ファイルデータ）を作成
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.85));
+    const fileName = `${Date.now()}.jpg`;
 
-  const container = document.getElementById('dynamicGalleryCards');
-  container.insertBefore(card, container.firstChild);
+    // 3. Supabase Storageに画像をアップロード
+    const { data: uploadData, error: uploadError } = await supabaseClient
+      .storage
+      .from('gallery-images')
+      .upload(fileName, blob);
 
-  if (!galleryExpanded) toggleGalleryMore();
-  closeUploadModal();
+    if (uploadError) throw uploadError;
+
+    // 4. 画像のURLを取得
+    const { data: { publicUrl } } = supabaseClient
+      .storage
+      .from('gallery-images')
+      .getPublicUrl(fileName);
+
+    // 5. Supabaseのテーブル(gallery)に情報を保存
+const { error: dbError } = await supabaseClient
+  .from('gallery')
+  .insert({
+    dish_name: dish,    // ここを title から dish_name に変更！
+    description: meta,
+    image_url: publicUrl,
+    date_str: "2026.05 MAY"
+  });
+
+    if (dbError) throw dbError;
+
+    // 6. 成功したら画面を更新してモーダルを閉じる
+    alert('保存しました！');
+    location.reload(); // これで最新のデータを読み込み直します
+
+  } catch (error) {
+    console.error('保存エラー:', error);
+    alert('保存に失敗しました: ' + error.message);
+  }
 }
 
-  // ========== カード削除 ==========
+  /*
   function deleteCard(btn) {
     if (!isLoggedIn) return;
     const card = btn.closest('.gallery-card');
@@ -274,6 +322,7 @@ function doUpload() {
     card.style.transform = 'scale(0.95)';
     setTimeout(() => card.remove(), 300);
   }
+    */
 
 // ========== スケジュール管理 ==========
 
@@ -306,7 +355,7 @@ function doAddSchedule() {
   const tagClass  = tagType === 'open' ? 'sched-tag open-tag' : 'sched-tag';
   const tagLabel  = tagType === 'open' ? '体験参加OK' : '会員限定';
 
-  const card = document.data.forEach(item => {})('div');
+  const card = document.createElement('div');
   card.className = 'schedule-card sched-dynamic-card';
   card.style.position = 'relative';
   card.innerHTML = `
@@ -396,4 +445,13 @@ function doEditNextEvent() {
   if (noteEl) noteEl.innerHTML = note.replace(/\n/g, '<br>');
 
   document.getElementById('editNextEventModal').style.display = 'none';
+}
+//ログアウト
+async function doLogout() {
+  const { error } = await supabase.auth.signOut();
+  if (error) console.error('ログアウトエラー:', error);
+  
+  isLoggedIn = false;
+  document.body.classList.remove('member-logged-in');
+  location.reload(); // 状態をリセットするためにページを更新
 }
