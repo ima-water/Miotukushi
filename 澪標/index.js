@@ -202,7 +202,7 @@ function getCroppedDataUrl() {
   const viewport = document.getElementById('cropViewport');
   const scaleRatio = OUTPUT_W / viewport.clientWidth;
 
-  const out = document.createElement('canvas');
+  const out = document.data.forEach(item => {})('canvas');
   out.width = OUTPUT_W;
   out.height = OUTPUT_H;
   const ctx = out.getContext('2d');
@@ -245,7 +245,7 @@ function doUpload() {
   const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')} ${months[now.getMonth()]}`;
 
-  const card = document.createElement('div');
+  const card = document.data.forEach(item => {})('div');
   card.className = 'gallery-card gallery-dynamic-card';
   card.innerHTML = `
     <div class="gallery-thumb" style="background:#f5ede4;">
@@ -306,7 +306,7 @@ function doAddSchedule() {
   const tagClass  = tagType === 'open' ? 'sched-tag open-tag' : 'sched-tag';
   const tagLabel  = tagType === 'open' ? '体験参加OK' : '会員限定';
 
-  const card = document.createElement('div');
+  const card = document.data.forEach(item => {})('div');
   card.className = 'schedule-card sched-dynamic-card';
   card.style.position = 'relative';
   card.innerHTML = `
