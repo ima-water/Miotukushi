@@ -13,9 +13,6 @@
   
 </head>
 <body>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase-client.js"></script>
-<script src="app.js"></script>
 <nav id="nav">
   <a href="#home" class="nav-logo"><img class="nav_logo" src="/img/IMG_7526.JPG" alt="サークルのロゴ"> 澪標</a>
   <ul class="nav-links">
@@ -142,6 +139,9 @@
       </div>
     </div>
     <div class="schedule-side reveal reveal-delay-2">
+      <div class="member-only" style="display:none; text-align:right; margin-bottom:12px;">
+        <button class="btn-outline-sm" onclick="openEditNextEventModal()" style="border-color:var(--peach-dk); color:var(--peach-dk);">✏️ 次回の予定を編集</button>
+      </div>
       <div class="next-event-card">
         <p class="next-label">🎯 NEXT EVENT</p>
         <h3 class="next-title">新入生歓迎<br>第4回新歓料理会!!</h3>
@@ -168,6 +168,7 @@
     </div>
     <div class="gallery-header-actions reveal" style="flex-shrink:0;display:flex;gap:12px;align-items:center;">
       <button class="btn-outline-sm" onclick="openAdminLogin()" id="adminBtn">🔐 メンバー投稿</button>
+      <button class="btn-outline-sm member-only" onclick="doLogout()" style="display:none; border-color:#a0928a; color:#a0928a;">🚪 ログアウト</button>
     </div>
   </div>
   <div class="gallery-grid" id="galleryGrid">
@@ -284,9 +285,9 @@
   <div class="modal-box" style="max-width:400px;width:90%;padding:40px 36px;">
     <span style="font-size:2.5rem;">🔐</span>
     <h3 style="margin:12px 0 6px;">メンバーログイン</h3>
-    <p style="font-size:0.83rem;color:var(--text-mid);margin-bottom:24px;">メンバーIDとパスワードを入力してください</p>
+    <p style="font-size:0.83rem;color:var(--text-mid);margin-bottom:24px;">メールアドレスとパスワードを入力してください</p>
     <div class="form-group" style="text-align:left;margin-bottom:14px;">
-      <label class="form-label">メンバーID</label>
+      <label class="form-label">メールアドレス</label>
       <input type="text" id="adminIdInput" class="form-input" placeholder="member_id">
     </div>
     <div class="form-group" style="text-align:left;margin-bottom:20px;">
@@ -408,6 +409,11 @@
     <div class="form-group" style="text-align:left;margin-bottom:14px;">
       <label class="form-label">日時 <span class="req">*</span></label>
       <input type="text" id="nextDateInput" class="form-input" placeholder="例：5月10日（土）13:00〜">
+    </div>
+    <div class="form-group" style="text-align:left;margin-bottom:14px;">
+      <label class="form-label">カレンダー日付（自動判定用） <span class="req">*</span></label>
+      <input type="date" id="nextTargetDateInput" class="form-input">
+      <p style="font-size:0.7rem; color:var(--text-lt); margin-top:4px;">※この日付を基準に、過ぎた予定を自動で非表示にし、一番近い未来の予定を選びます</p>
     </div>
     <div class="form-group" style="text-align:left;margin-bottom:14px;">
       <label class="form-label">場所</label>
@@ -584,6 +590,9 @@
     <button class="modal-close" onclick="document.getElementById('modal').style.display='none'">閉じる</button>
   </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabaseClient.js"></script>
+<script src="app.js"></script>
 <script src="index.js"></script>
 </body>
 </html>

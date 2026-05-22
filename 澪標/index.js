@@ -50,14 +50,28 @@ function toggleGalleryMore() {
   });
   btn.textContent = galleryExpanded ? '閉じる ↑' : 'もっと見る ↓';
 }
-
+/*
 // ========== メンバーログイン ==========
 const MEMBERS = [
   { id: 'soedaisaku', pass: 'miotsukushi2023' },
   { id: 'nakanomana',    pass: 'miotsukushi2023' },
 ];
+*/
 
 let isLoggedIn = false;
+
+// ========== ログイン状態の維持（リロード対策） ==========
+supabaseClient.auth.onAuthStateChange((event, session) => {
+  if (session) {
+    // Supabaseにログインの記憶が残っていれば、強制的にログイン状態にする
+    isLoggedIn = true;
+    document.body.classList.add('member-logged-in');
+  } else {
+    // 記憶がなければログアウト状態にする
+    isLoggedIn = false;
+    document.body.classList.remove('member-logged-in');
+  }
+});
 
 function openAdminLogin() {
   if (isLoggedIn) {
@@ -70,24 +84,36 @@ function openAdminLogin() {
   document.getElementById('adminLoginModal').style.display = 'flex';
 }
 
-function doAdminLogin() {
-  const id = document.getElementById('adminIdInput').value.trim();
-  const pass = document.getElementById('adminPassInput').value.trim();
-  const ok = MEMBERS.some(m => m.id === id && m.pass === pass);
-  if (ok) {
-    isLoggedIn = true;
-    document.body.classList.add('member-logged-in');
-    // .member-only を一括表示
-    document.querySelectorAll('.member-only').forEach(el => {
-      el.style.display = el.tagName === 'BUTTON' ? 'inline-flex' : 'flex';
-    });
-    document.getElementById('adminLoginModal').style.display = 'none';
-    document.getElementById('adminBtn').textContent = '📸 料理を追加する';
-    document.getElementById('adminBtn').classList.add('logged-in');
-    document.getElementById('uploadModal').style.display = 'flex';
-  } else {
-    document.getElementById('loginError').style.display = 'block';
+// 新しいログイン関数（Supabase認証版）
+async function doAdminLogin() {
+  const email = document.getElementById('adminIdInput').value.trim(); // ID入力欄をメールアドレスとして使う
+  const pass  = document.getElementById('adminPassInput').value.trim();
+  const err   = document.getElementById('loginError');
+
+  // Supabaseに「この人あってる？」と聞きに行く
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email: email,
+    password: pass,
+  });
+
+  if (error) {
+    console.error('ログイン失敗:', error.message);
+    err.style.display = 'block';
+    err.textContent = "メールアドレスまたはパスワードが違います";
+    return;
   }
+
+  // ログイン成功時の処理
+  console.log('ログイン成功:', data.user);
+  err.style.display = 'none';
+  
+  // ログイン状態を反映させる
+  isLoggedIn = true; 
+  document.body.classList.add('member-logged-in'); // メンバー専用UIを表示
+  
+  // モーダルを閉じて投稿画面へ
+  document.getElementById('adminLoginModal').style.display = 'none';
+  document.getElementById('uploadModal').style.display = 'flex';
 }
 
 document.getElementById('adminPassInput').addEventListener('keydown', e => {
@@ -202,7 +228,7 @@ function getCroppedDataUrl() {
   const viewport = document.getElementById('cropViewport');
   const scaleRatio = OUTPUT_W / viewport.clientWidth;
 
-  const out = document.data.forEach(item => {})('canvas');
+  const out = document.createElement('canvas');
   out.width = OUTPUT_W;
   out.height = OUTPUT_H;
   const ctx = out.getContext('2d');
@@ -232,7 +258,7 @@ function closeUploadModal() {
   document.getElementById('uploadError').style.display = 'none';
 }
 
-function doUpload() {
+async function doUpload() {
   const dish = document.getElementById('uploadDish').value.trim();
   const meta = document.getElementById('uploadMeta').value.trim();
   const err  = document.getElementById('uploadError');
@@ -240,32 +266,67 @@ function doUpload() {
   if (!dish || !cropImage) { err.style.display = 'block'; return; }
   err.style.display = 'none';
 
-  const croppedUrl = getCroppedDataUrl();
-  const now = new Date();
-  const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-  const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')} ${months[now.getMonth()]}`;
+  try {
+    // 1. トリミングした画像を「データ」として取得
+    const canvas = document.createElement('canvas'); // さっき直したところ！
+    const OUTPUT_W = 600, OUTPUT_H = 450;
+    canvas.width = OUTPUT_W; canvas.height = OUTPUT_H;
+    const ctx = canvas.getContext('2d');
+    
+    // トリミング計算
+    const viewport = document.getElementById('cropViewport');
+    const scaleRatio = OUTPUT_W / viewport.clientWidth;
+    const imgW = cropImage.naturalWidth;
+    const imgH = cropImage.naturalHeight;
+    const baseScale = Math.max(viewport.clientWidth / imgW, viewport.clientHeight / imgH);
+    const scale = baseScale * (cropScale / 100);
+    const drawW = imgW * scale * scaleRatio;
+    const drawH = imgH * scale * scaleRatio;
+    const x = (OUTPUT_W - drawW) / 2 + cropOffsetX * scaleRatio;
+    const y = (OUTPUT_H - drawH) / 2 + cropOffsetY * scaleRatio;
+    ctx.drawImage(cropImage, x, y, drawW, drawH);
 
-  const card = document.data.forEach(item => {})('div');
-  card.className = 'gallery-card gallery-dynamic-card';
-  card.innerHTML = `
-    <div class="gallery-thumb" style="background:#f5ede4;">
-      <button class="gallery-delete-btn" onclick="deleteCard(this)" title="削除">✕</button>
-      <img class="gallery-thumb-photo" src="${croppedUrl}" alt="${dish}" style="object-fit:cover;">
-      <div class="gallery-thumb-date" style="color:#fff;position:absolute;bottom:8px;right:10px;text-shadow:0 1px 4px rgba(0,0,0,0.5);z-index:1;">${dateStr}</div>
-    </div>
-    <div class="gallery-info">
-      <p class="gallery-dish">${dish}</p>
-      <p class="gallery-meta">${meta || 'メンバー投稿'}</p>
-    </div>`;
+    // 2. キャンバスからBlob（ファイルデータ）を作成
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.85));
+    const fileName = `${Date.now()}.jpg`;
 
-  const container = document.getElementById('dynamicGalleryCards');
-  container.insertBefore(card, container.firstChild);
+    // 3. Supabase Storageに画像をアップロード
+    const { data: uploadData, error: uploadError } = await supabaseClient
+      .storage
+      .from('gallery-images')
+      .upload(fileName, blob);
 
-  if (!galleryExpanded) toggleGalleryMore();
-  closeUploadModal();
+    if (uploadError) throw uploadError;
+
+    // 4. 画像のURLを取得
+    const { data: { publicUrl } } = supabaseClient
+      .storage
+      .from('gallery-images')
+      .getPublicUrl(fileName);
+
+    // 5. Supabaseのテーブル(gallery)に情報を保存
+const { error: dbError } = await supabaseClient
+  .from('gallery')
+  .insert({
+    dish_name: dish,    // ここを title から dish_name に変更！
+    description: meta,
+    image_url: publicUrl,
+    date_str: "2026.05 MAY"
+  });
+
+    if (dbError) throw dbError;
+
+    // 6. 成功したら画面を更新してモーダルを閉じる
+    alert('保存しました！');
+    location.reload(); // これで最新のデータを読み込み直します
+
+  } catch (error) {
+    console.error('保存エラー:', error);
+    alert('保存に失敗しました: ' + error.message);
+  }
 }
 
-  // ========== カード削除 ==========
+  /*
   function deleteCard(btn) {
     if (!isLoggedIn) return;
     const card = btn.closest('.gallery-card');
@@ -274,6 +335,7 @@ function doUpload() {
     card.style.transform = 'scale(0.95)';
     setTimeout(() => card.remove(), 300);
   }
+    */
 
 // ========== スケジュール管理 ==========
 
@@ -288,8 +350,8 @@ function openAddScheduleModal() {
   document.getElementById('addScheduleModal').style.display = 'flex';
 }
 
-// --- スケジュールカードを追加する ---
-function doAddSchedule() {
+// --- スケジュールカードを追加する（Supabase保存版） ---
+async function doAddSchedule() {
   const monthVal  = document.getElementById('schedMonthInput').value;
   const title     = document.getElementById('schedTitleInput').value.trim();
   const detail    = document.getElementById('schedDetailInput').value.trim();
@@ -303,50 +365,65 @@ function doAddSchedule() {
   err.style.display = 'none';
 
   const [monthNum, monthEn] = monthVal.split('|');
-  const tagClass  = tagType === 'open' ? 'sched-tag open-tag' : 'sched-tag';
-  const tagLabel  = tagType === 'open' ? '体験参加OK' : '会員限定';
 
-  const card = document.data.forEach(item => {})('div');
-  card.className = 'schedule-card sched-dynamic-card';
-  card.style.position = 'relative';
-  card.innerHTML = `
-    <button class="sched-delete-btn" onclick="deleteScheduleCard(this)" title="削除" style="display:flex;">✕</button>
-    <div class="sched-month">${monthNum}<small>${monthEn}</small></div>
-    <div>
-      <p class="sched-title">${title}</p>
-      <p class="sched-detail">${detail.replace(/\n/g, '<br>')}</p>
-      <span class="${tagClass}">${tagLabel}</span>
-    </div>`;
+  try {
+    // 🔴 Supabase の schedules テーブルに保存
+    const { error } = await supabaseClient
+      .from('schedules')
+      .insert({
+        month_num: monthNum,
+        month_en: monthEn,
+        title: title,
+        detail: detail,
+        tag_type: tagType
+      });
 
-  // リストの先頭に追加
-  const list = document.querySelector('.schedule-list');
-  list.insertBefore(card, list.firstChild);
+    if (error) throw error;
 
-  // reveal アニメーションを適用
-  setTimeout(() => observer.observe(card), 10);
+    alert('予定を追加しました！');
+    location.reload(); // 再読み込みして最新の予定を表示
 
-  document.getElementById('addScheduleModal').style.display = 'none';
+  } catch (error) {
+    console.error('スケジュール保存エラー:', error);
+    alert('保存に失敗しました: ' + error.message);
+  }
 }
 
-// --- スケジュールカードを削除する ---
-function deleteScheduleCard(btn) {
+// --- スケジュールカードを削除する（Supabase連動版） ---
+async function deleteScheduleCard(idOrBtn, btn) {
   if (!isLoggedIn) return;
-  const card = btn.closest('.schedule-card');
-  card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-  card.style.opacity = '0';
-  card.style.transform = 'scale(0.97)';
-  setTimeout(() => card.remove(), 300);
-}
 
+  if (typeof idOrBtn === 'string') {
+    // 🔴 データベースから追加された動的カードの削除
+    if (!confirm("この予定を削除しますか？")) return;
+    
+    const { error } = await supabaseClient
+      .from('schedules')
+      .delete()
+      .eq('id', idOrBtn);
+
+    if (error) {
+      alert('削除に失敗しました');
+      return;
+    }
+    const card = btn.closest('.schedule-card');
+    card.remove();
+  } else {
+    // もともと HTML に直書きされているカードの削除（画面上から消すだけ）
+    const card = idOrBtn.closest('.schedule-card');
+    card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    card.style.opacity = '0';
+    card.style.transform = 'scale(0.97)';
+    setTimeout(() => card.remove(), 300);
+  }
+}
 // ========== NEXT EVENT 編集 ==========
 
-// --- 編集モーダルを開く（現在の値を読み込む） ---
+// --- 編集モーダルを開く（現在の値をフォームに読み込む） ---
 function openEditNextEventModal() {
   if (!isLoggedIn) return;
 
-  // 現在の表示値を読み取ってフォームに反映
   const details = document.querySelectorAll('.next-detail');
-  // details[0]=日時, [1]=場所, [2]=定員, [3]=参加費, [4]=持物
   const getValue = (el) => el ? el.textContent.replace(/^.+?\s/, '').trim() : '';
 
   document.getElementById('nextTitleInput').value =
@@ -358,15 +435,19 @@ function openEditNextEventModal() {
   document.getElementById('nextItemsInput').value = getValue(details[4]);
   document.getElementById('nextNoteInput').value  =
     document.querySelector('.next-note') ? document.querySelector('.next-note').innerText.trim() : '';
+    
+  // カレンダー入力は毎回新しく選んでもらうため空にする
+  document.getElementById('nextTargetDateInput').value = '';
 
   document.getElementById('editNextEventError').style.display = 'none';
   document.getElementById('editNextEventModal').style.display = 'flex';
 }
 
-// --- NEXT EVENT を更新する ---
-function doEditNextEvent() {
+// --- NEXT EVENT を新規追加する（一番近い未来のものを自動表示させるためINSERTにする） ---
+async function doEditNextEvent() {
   const title  = document.getElementById('nextTitleInput').value.trim();
   const date   = document.getElementById('nextDateInput').value.trim();
+  const target = document.getElementById('nextTargetDateInput').value; // 追加
   const place  = document.getElementById('nextPlaceInput').value.trim();
   const cap    = document.getElementById('nextCapInput').value.trim();
   const fee    = document.getElementById('nextFeeInput').value.trim();
@@ -374,26 +455,54 @@ function doEditNextEvent() {
   const note   = document.getElementById('nextNoteInput').value.trim();
   const err    = document.getElementById('editNextEventError');
 
-  if (!title || !date) { err.style.display = 'block'; return; }
+  // カレンダーの日付選択も必須チェックに含める
+  if (!title || !date || !target) { err.style.display = 'block'; return; }
   err.style.display = 'none';
 
-  // タイトルを更新（改行を<br>に変換）
-  document.querySelector('.next-title').innerHTML = title.replace(/\n/g, '<br>');
+  try {
+    // 🔴 過去データを残したまま、今日以降を絞り込めるように insert で新規追加する
+    const { error } = await supabaseClient
+      .from('next_event')
+      .insert({
+        id: Math.floor(Math.random() * 1000000), // 👈 100万以下のランダムな数字に変更！
+        title: title,
+        event_date: date,
+        target_date: target, // カレンダー日付を保存
+        place: place,
+        capacity: cap,
+        fee: fee,
+        items: items,
+        note: note
+      });
 
-  // 各詳細行を更新
-  const details = document.querySelectorAll('.next-detail');
-  const setDetail = (el, label, val) => {
-    if (el) el.innerHTML = `<strong>${label}</strong>${val || '—'}`;
-  };
-  setDetail(details[0], '日時', date);
-  setDetail(details[1], '場所', place);
-  setDetail(details[2], '定員', cap);
-  setDetail(details[3], '参加費', fee);
-  setDetail(details[4], '持物', items);
+    if (error) throw error;
 
-  // 補足メモを更新
-  const noteEl = document.querySelector('.next-note');
-  if (noteEl) noteEl.innerHTML = note.replace(/\n/g, '<br>');
+    alert('活動予定を新しく保存しました！');
+    location.reload(); // リロードして最新状態に自動更新
 
-  document.getElementById('editNextEventModal').style.display = 'none';
+  } catch (error) {
+    console.error('保存エラー:', error);
+    alert('保存に失敗しました: ' + error.message);
+  }
+}
+// ========== ログアウト処理 ==========
+async function doLogout() {
+  // 間違えて押した時のために確認を出す
+  if (!confirm("ログアウトしますか？")) return;
+
+  // 🔴 supabase ではなく supabaseClient を使うように修正！
+  const { error } = await supabaseClient.auth.signOut();
+  
+  if (error) {
+    console.error('ログアウトエラー:', error);
+    alert('ログアウトに失敗しました');
+    return;
+  }
+  
+  // ログアウト状態に戻す
+  isLoggedIn = false;
+  document.body.classList.remove('member-logged-in');
+  
+  // ページをリロードして、画面の表示（編集ボタンなど）を完全にリセットする
+  location.reload(); 
 }
