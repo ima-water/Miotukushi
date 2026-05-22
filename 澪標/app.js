@@ -10,6 +10,8 @@ async function testConnection() {
 testConnection();
 
 // ========== 料理記録ギャラリーの読み込み ==========
+const INITIAL_SHOW_COUNT = 3; // 👈 最初に表示する枚数（お好みで数字を変えてください）
+
 async function loadGallery() {
   const { data, error } = await supabaseClient
     .from('gallery')
@@ -26,13 +28,21 @@ async function loadGallery() {
 
   container.innerHTML = '';
 
-  data.forEach(item => {
+  // 取得したデータを順番にHTMLにしていく
+  data.forEach((item, index) => {
     const card = document.createElement('div');
     card.className = 'gallery-card gallery-dynamic-card';
     
+    // 👇 最初の数枚（INITIAL_SHOW_COUNT）以降は、いったん隠す設定にする
+    if (index >= INITIAL_SHOW_COUNT) {
+      card.style.display = 'none'; 
+      card.classList.add('is-hidden'); // 後で見つけるための目印
+    }
+
+    // 削除ボタンに member-only クラスを追加してログアウト時は消えるように設定
     card.innerHTML = `
       <div class="gallery-thumb" style="background:#f5ede4;">
-        <button class="gallery-delete-btn" onclick="deleteCard('${item.id}', this)" title="削除">✕</button>
+        <button class="gallery-delete-btn member-only" onclick="deleteCard('${item.id}', this)" title="削除" style="display:${isLoggedIn ? 'block' : 'none'};">✕</button>
         <img class="gallery-thumb-photo" src="${item.image_url}" alt="${item.dish_name}" style="object-fit:cover;">
         <div class="gallery-thumb-date" style="color:#fff;position:absolute;bottom:8px;right:10px;text-shadow:0 1px 4px rgba(0,0,0,0.5);z-index:1;">
           ${item.date_str}
@@ -45,8 +55,37 @@ async function loadGallery() {
     `;
     container.appendChild(card);
   });
+
+  // 👇 写真を並べ終わったら、「もっとみる」ボタンの設定をする
+  setupLoadMoreButton();
 }
 
+// ========== 「もっとみる」ボタンの制御 ==========
+function setupLoadMoreButton() {
+  // 🔴 HTMLの id="galleryMoreBtn" と完全に連携！
+  const btn = document.getElementById('galleryMoreBtn');
+  if (!btn) return;
+
+  // 「is-hidden」という目印がついた隠れカードを探す
+  const hiddenCards = document.querySelectorAll('.gallery-dynamic-card.is-hidden');
+  
+  if (hiddenCards.length > 0) {
+    // 隠れているカードがある場合はボタンを表示する
+    btn.style.display = 'inline-block';
+    
+    // ボタンがクリックされたときの処理
+    btn.onclick = () => {
+      hiddenCards.forEach(card => {
+        card.style.display = 'block'; // カードを表示する
+        card.classList.remove('is-hidden'); // 目印を外す
+      });
+      btn.style.display = 'none'; // 全部表示したら「もっとみる」ボタン自体を隠す
+    };
+  } else {
+    // 隠れているカードが1枚もない場合や、最初から6枚以下の場合はボタンを隠す
+    btn.style.display = 'none';
+  }
+}
 // ========== NEXT EVENT を自動判定して1件だけ読み込む ==========
 async function loadNextEvent() {
   const today = new Date();

@@ -261,6 +261,13 @@
     .gallery-info { padding: 18px 20px; }
     .gallery-dish { font-family: 'Klee One', cursive; font-size: 1rem; font-weight: 600; color: var(--brown); margin-bottom: 4px; }
     .gallery-meta { font-size: 0.73rem; color: var(--text-lt); }
+    /* ギャラリーの「もっと見る」ボタンを中央に配置 */
+    .gallery-more-wrap {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+      margin-top: 20px;
+    }
 
     /* ── MEMBERS ── */
     #members { background: linear-gradient(160deg, #fff4ec 0%, #fdf0e8 100%); }
