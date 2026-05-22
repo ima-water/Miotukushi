@@ -10,55 +10,7 @@
   <link rel="stylesheet" href="stylesheet.css">
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <style>
-  .gallery-extra { transition: opacity 0.4s ease, transform 0.4s ease; }
-  .gallery-extra.hidden { display: none; }
-  .gallery-extra.showing { display: block; animation: fadeSlideUp 0.5s ease forwards; }
-  @keyframes fadeSlideUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .gallery-more-wrap { text-align: center; margin-top: 32px; }
-  #galleryMoreBtn { transition: all 0.2s ease; }
-  .btn-outline-sm {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 8px 16px; border-radius: 20px;
-    border: 1.5px solid var(--primary, #c86b3a);
-    color: var(--primary, #c86b3a); background: transparent;
-    font-size: 0.82rem; font-weight: 600; cursor: pointer;
-    transition: all 0.2s ease; white-space: nowrap;
-    font-family: inherit;
-  }
-  .btn-outline-sm:hover { background: var(--primary, #c86b3a); color: #fff; }
-  .btn-outline-sm.logged-in { border-color: #3a8a5a; color: #3a8a5a; }
-  .btn-outline-sm.logged-in:hover { background: #3a8a5a; color: #fff; }
-  .gallery-dynamic-card { animation: fadeSlideUp 0.5s ease forwards; }
-    #dynamicGalleryCards { display: contents; }
-    #photoDropArea:hover { border-color: var(--primary, #c86b3a); background: #fff8f2; }
-    .gallery-thumb {
-      position: relative; overflow: hidden;
-      height: 180px; background: #f5ede4;
-    }
-    .gallery-thumb-photo {
-      width: 100%; height: 100%;
-      object-fit: contain;
-      position: absolute; inset: 0;
-    }
-    /* 削除ボタン */
-    .gallery-delete-btn {
-      display: none;
-      position: absolute; top: 8px; right: 8px;
-      width: 28px; height: 28px; border-radius: 50%;
-      background: rgba(180,40,40,0.85); color: #fff;
-      border: none; font-size: 0.85rem; line-height: 1;
-      cursor: pointer; z-index: 10;
-      align-items: center; justify-content: center;
-      transition: background 0.2s;
-    }
-    
-    .gallery-delete-btn:hover { background: rgba(180,40,40,1); }
-    body.member-logged-in .gallery-card .gallery-delete-btn { display: flex; }
-</style>
+  
 </head>
 <body>
 <nav id="nav">
@@ -195,7 +147,7 @@
         <h3 class="next-title">新入生歓迎<br>第4回新歓料理会!!</h3>
         <div class="next-details">
           <div class="next-detail"><strong>日時</strong>5月24日（日）18:00〜</div>
-          <div class="next-detail"><strong>場所</strong>西南障害活動センター 調理室（2F）</div>
+          <div class="next-detail"><strong>場所</strong>西南生涯活動センター 調理室（2F）</div>
           <div class="next-detail"><strong>定員</strong>15名（抽選）</div>
           <div class="next-detail"><strong>参加費</strong>体験費1000円のみ</div>
           <div class="next-detail"><strong>持物</strong>やる気と元気</div>
@@ -324,8 +276,8 @@
         </div>
       </div>
     </div> -->
-  <div class="gallery-more-wrap">
-    <button class="btn-outline" id="galleryMoreBtn" onclick="toggleGalleryMore()">もっと見る ↓</button>
+  <div class="gallery-more-wrap" >
+    <button class="btn-outline" id="galleryMoreBtn">もっと見る ↓</button>
   </div>
 </section>
 <!-- メンバーログインモーダル -->
@@ -533,7 +485,7 @@
     <p>他にも30名以上のメンバーが在籍しています🌿<br>一緒にご飯を作ったら、自然と仲良くなれます。あなたも仲間になりませんか？</p>
     <a href="https://www.instagram.com/miotsukushi_handai?igsh=ZW1pZzBqMDRuMnIz&utm_source=qr" class="btn-primary" target="_blank" rel="noopener noreferrer">📷 Instagramで問い合わせる</a>
   </div>
-</section>
+</section>. 
 
 <section id="about">
   <div class="reveal">
