@@ -60,6 +60,19 @@ const MEMBERS = [
 
 let isLoggedIn = false;
 
+// ========== ログイン状態の維持（リロード対策） ==========
+supabaseClient.auth.onAuthStateChange((event, session) => {
+  if (session) {
+    // Supabaseにログインの記憶が残っていれば、強制的にログイン状態にする
+    isLoggedIn = true;
+    document.body.classList.add('member-logged-in');
+  } else {
+    // 記憶がなければログアウト状態にする
+    isLoggedIn = false;
+    document.body.classList.remove('member-logged-in');
+  }
+});
+
 function openAdminLogin() {
   if (isLoggedIn) {
     document.getElementById('uploadModal').style.display = 'flex';
@@ -337,8 +350,8 @@ function openAddScheduleModal() {
   document.getElementById('addScheduleModal').style.display = 'flex';
 }
 
-// --- スケジュールカードを追加する ---
-function doAddSchedule() {
+// --- スケジュールカードを追加する（Supabase保存版） ---
+async function doAddSchedule() {
   const monthVal  = document.getElementById('schedMonthInput').value;
   const title     = document.getElementById('schedTitleInput').value.trim();
   const detail    = document.getElementById('schedDetailInput').value.trim();
@@ -352,50 +365,65 @@ function doAddSchedule() {
   err.style.display = 'none';
 
   const [monthNum, monthEn] = monthVal.split('|');
-  const tagClass  = tagType === 'open' ? 'sched-tag open-tag' : 'sched-tag';
-  const tagLabel  = tagType === 'open' ? '体験参加OK' : '会員限定';
 
-  const card = document.createElement('div');
-  card.className = 'schedule-card sched-dynamic-card';
-  card.style.position = 'relative';
-  card.innerHTML = `
-    <button class="sched-delete-btn" onclick="deleteScheduleCard(this)" title="削除" style="display:flex;">✕</button>
-    <div class="sched-month">${monthNum}<small>${monthEn}</small></div>
-    <div>
-      <p class="sched-title">${title}</p>
-      <p class="sched-detail">${detail.replace(/\n/g, '<br>')}</p>
-      <span class="${tagClass}">${tagLabel}</span>
-    </div>`;
+  try {
+    // 🔴 Supabase の schedules テーブルに保存
+    const { error } = await supabaseClient
+      .from('schedules')
+      .insert({
+        month_num: monthNum,
+        month_en: monthEn,
+        title: title,
+        detail: detail,
+        tag_type: tagType
+      });
 
-  // リストの先頭に追加
-  const list = document.querySelector('.schedule-list');
-  list.insertBefore(card, list.firstChild);
+    if (error) throw error;
 
-  // reveal アニメーションを適用
-  setTimeout(() => observer.observe(card), 10);
+    alert('予定を追加しました！');
+    location.reload(); // 再読み込みして最新の予定を表示
 
-  document.getElementById('addScheduleModal').style.display = 'none';
+  } catch (error) {
+    console.error('スケジュール保存エラー:', error);
+    alert('保存に失敗しました: ' + error.message);
+  }
 }
 
-// --- スケジュールカードを削除する ---
-function deleteScheduleCard(btn) {
+// --- スケジュールカードを削除する（Supabase連動版） ---
+async function deleteScheduleCard(idOrBtn, btn) {
   if (!isLoggedIn) return;
-  const card = btn.closest('.schedule-card');
-  card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-  card.style.opacity = '0';
-  card.style.transform = 'scale(0.97)';
-  setTimeout(() => card.remove(), 300);
-}
 
+  if (typeof idOrBtn === 'string') {
+    // 🔴 データベースから追加された動的カードの削除
+    if (!confirm("この予定を削除しますか？")) return;
+    
+    const { error } = await supabaseClient
+      .from('schedules')
+      .delete()
+      .eq('id', idOrBtn);
+
+    if (error) {
+      alert('削除に失敗しました');
+      return;
+    }
+    const card = btn.closest('.schedule-card');
+    card.remove();
+  } else {
+    // もともと HTML に直書きされているカードの削除（画面上から消すだけ）
+    const card = idOrBtn.closest('.schedule-card');
+    card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    card.style.opacity = '0';
+    card.style.transform = 'scale(0.97)';
+    setTimeout(() => card.remove(), 300);
+  }
+}
 // ========== NEXT EVENT 編集 ==========
 
-// --- 編集モーダルを開く（現在の値を読み込む） ---
+// --- 編集モーダルを開く（現在の値をフォームに読み込む） ---
 function openEditNextEventModal() {
   if (!isLoggedIn) return;
 
-  // 現在の表示値を読み取ってフォームに反映
   const details = document.querySelectorAll('.next-detail');
-  // details[0]=日時, [1]=場所, [2]=定員, [3]=参加費, [4]=持物
   const getValue = (el) => el ? el.textContent.replace(/^.+?\s/, '').trim() : '';
 
   document.getElementById('nextTitleInput').value =
@@ -407,15 +435,19 @@ function openEditNextEventModal() {
   document.getElementById('nextItemsInput').value = getValue(details[4]);
   document.getElementById('nextNoteInput').value  =
     document.querySelector('.next-note') ? document.querySelector('.next-note').innerText.trim() : '';
+    
+  // カレンダー入力は毎回新しく選んでもらうため空にする
+  document.getElementById('nextTargetDateInput').value = '';
 
   document.getElementById('editNextEventError').style.display = 'none';
   document.getElementById('editNextEventModal').style.display = 'flex';
 }
 
-// --- NEXT EVENT を更新する ---
-function doEditNextEvent() {
+// --- NEXT EVENT を新規追加する（一番近い未来のものを自動表示させるためINSERTにする） ---
+async function doEditNextEvent() {
   const title  = document.getElementById('nextTitleInput').value.trim();
   const date   = document.getElementById('nextDateInput').value.trim();
+  const target = document.getElementById('nextTargetDateInput').value; // 追加
   const place  = document.getElementById('nextPlaceInput').value.trim();
   const cap    = document.getElementById('nextCapInput').value.trim();
   const fee    = document.getElementById('nextFeeInput').value.trim();
@@ -423,35 +455,54 @@ function doEditNextEvent() {
   const note   = document.getElementById('nextNoteInput').value.trim();
   const err    = document.getElementById('editNextEventError');
 
-  if (!title || !date) { err.style.display = 'block'; return; }
+  // カレンダーの日付選択も必須チェックに含める
+  if (!title || !date || !target) { err.style.display = 'block'; return; }
   err.style.display = 'none';
 
-  // タイトルを更新（改行を<br>に変換）
-  document.querySelector('.next-title').innerHTML = title.replace(/\n/g, '<br>');
+  try {
+    // 🔴 過去データを残したまま、今日以降を絞り込めるように insert で新規追加する
+    const { error } = await supabaseClient
+      .from('next_event')
+      .insert({
+        id: Math.floor(Math.random() * 1000000), // 👈 100万以下のランダムな数字に変更！
+        title: title,
+        event_date: date,
+        target_date: target, // カレンダー日付を保存
+        place: place,
+        capacity: cap,
+        fee: fee,
+        items: items,
+        note: note
+      });
 
-  // 各詳細行を更新
-  const details = document.querySelectorAll('.next-detail');
-  const setDetail = (el, label, val) => {
-    if (el) el.innerHTML = `<strong>${label}</strong>${val || '—'}`;
-  };
-  setDetail(details[0], '日時', date);
-  setDetail(details[1], '場所', place);
-  setDetail(details[2], '定員', cap);
-  setDetail(details[3], '参加費', fee);
-  setDetail(details[4], '持物', items);
+    if (error) throw error;
 
-  // 補足メモを更新
-  const noteEl = document.querySelector('.next-note');
-  if (noteEl) noteEl.innerHTML = note.replace(/\n/g, '<br>');
+    alert('活動予定を新しく保存しました！');
+    location.reload(); // リロードして最新状態に自動更新
 
-  document.getElementById('editNextEventModal').style.display = 'none';
+  } catch (error) {
+    console.error('保存エラー:', error);
+    alert('保存に失敗しました: ' + error.message);
+  }
 }
-//ログアウト
+// ========== ログアウト処理 ==========
 async function doLogout() {
-  const { error } = await supabase.auth.signOut();
-  if (error) console.error('ログアウトエラー:', error);
+  // 間違えて押した時のために確認を出す
+  if (!confirm("ログアウトしますか？")) return;
+
+  // 🔴 supabase ではなく supabaseClient を使うように修正！
+  const { error } = await supabaseClient.auth.signOut();
   
+  if (error) {
+    console.error('ログアウトエラー:', error);
+    alert('ログアウトに失敗しました');
+    return;
+  }
+  
+  // ログアウト状態に戻す
   isLoggedIn = false;
   document.body.classList.remove('member-logged-in');
-  location.reload(); // 状態をリセットするためにページを更新
+  
+  // ページをリロードして、画面の表示（編集ボタンなど）を完全にリセットする
+  location.reload(); 
 }
