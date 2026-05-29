@@ -121,7 +121,6 @@ document.addEventListener('DOMContentLoaded', loadGallery);
     // 隠れているカードが1枚もない場合や、最初から6枚以下の場合はボタンを隠す
     btn.style.display = 'none';
   }
-}
 // ========== NEXT EVENT を自動判定して1件だけ読み込む ==========
 async function loadNextEvent() {
   const today = new Date();
