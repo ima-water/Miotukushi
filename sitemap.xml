@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- トップページ（メイン） -->
+  <url>
+    <loc>https://ima-water.github.io/Miotukushi/</loc>
+    <lastmod>2025-05-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- 活動スケジュールセクション -->
+  <url>
+    <loc>https://ima-water.github.io/Miotukushi/#schedule</loc>
+    <lastmod>2025-05-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- ギャラリーセクション -->
+  <url>
+    <loc>https://ima-water.github.io/Miotukushi/#gallery</loc>
+    <lastmod>2025-05-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- サークル紹介セクション -->
+  <url>
+    <loc>https://ima-water.github.io/Miotukushi/#about</loc>
+    <lastmod>2025-05-24</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+</urlset>
