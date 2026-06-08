@@ -382,6 +382,7 @@ function openEditNextEventModal() {
 }
 
 // 📑 NEXT EVENT データベースへ新規保存する処理
+// 📑 NEXT EVENT の保存処理（エラー回避・上書き方式に変更）
 async function doEditNextEvent() {
   const title  = document.getElementById('nextTitleInput').value.trim();
   const date   = document.getElementById('nextDateInput').value.trim();
@@ -400,9 +401,11 @@ async function doEditNextEvent() {
   err.style.display = 'none';
 
   try {
+    // 💡 insert から upsert に変更し、id: 1 を明示的に指定して上書きします
     const { error } = await supabaseClient
       .from('next_event')
-      .insert({
+      .upsert({
+        id: 1, // ✨ これを入れることでID自動採番のエラーを回避します
         title: title,
         event_date: date,
         target_date: target, 
@@ -415,7 +418,7 @@ async function doEditNextEvent() {
 
     if (error) throw error;
 
-    alert('NEXT EVENT を新しく登録しました！🌿');
+    alert('NEXT EVENT を更新しました！🌿');
     document.getElementById('editNextEventModal').style.display = 'none';
     location.reload(); 
 
@@ -424,7 +427,6 @@ async function doEditNextEvent() {
     alert('保存に失敗しました: ' + error.message);
   }
 }
-
 // ========== ログアウト処理 ==========
 async function doLogout() {
   if (!confirm("ログアウトしますか？")) return;
